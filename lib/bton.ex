@@ -1,15 +1,14 @@
 defmodule Bton do
   use Application.Behaviour
 
-  def parse(s) do
+  def read(s) do
     [v] = parse(String.codepoints(iolist_to_binary(s)), [])
     v
   end
-  def stringify(d) do
+  def print(d) do
     iolist_to_binary(emit(d))
   end
   defp emit(d) when is_integer d do
-    d = integer_to_binary d
     if d < 0 do
       "d#{-d}-"
     else
