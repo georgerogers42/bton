@@ -1,10 +1,6 @@
 defmodule Bton do
   use Application.Behaviour
 
-  def read(s) do
-    [v] = parse(String.codepoints(iolist_to_binary(s)), [])
-    v
-  end
   def print(d) do
     iolist_to_binary(emit(d))
   end
@@ -16,14 +12,10 @@ defmodule Bton do
     end
   end
   defp emit(d) when is_float d do
-    a = iolist_to_binary(:io_lib.format("~.3f", [d]))
+    a = iolist_to_binary(:io_lib.format("~.4f", [d]))
     [x, y] = Regex.split ~r"\.", a
     a = binary_to_integer(String.strip(x <> y))
-    if a < 0 do
-      "d#{-a}-d3e"
-    else
-      "d#{a}d3e"
-    end
+    "#{emit a}#{emit 4}e"
   end
   defp emit(b) when is_binary(b) do
     [emit(size(b)), '"', b]
@@ -40,12 +32,20 @@ defmodule Bton do
     end
     ["{", ps, "}"]
   end
+
+  def read(s) do
+    [v] = parse(String.codepoints(iolist_to_binary(s)), [])
+    v
+  end
   defp parse([], v) do
     v
   end
-  defp parse(cs=[d|_], stk) when d >= "0" and d <= "9" do
+  defp parse(["d"|cs], stk) do
     {cs, n} = dec(cs, 0)
     parse(cs, [n|stk])
+  end
+  defp parse(cs=[d|_], stk) when d >= "0" and d <= "9" do
+    parse(["d"|cs], stk)
   end
   # defp parse([?x|cs], stk) do
     # hex(cs, stk)
@@ -75,8 +75,16 @@ defmodule Bton do
   defp parse(["\""|cs], [l|stk]) do
     str(cs, stk, l)
   end
-  defp parse([_|cs], stk) do
+  defp parse(["}"|cs], stk) do
     parse(cs, stk)
+  end
+  defp parse([c|cs], stk) do
+    cond do
+      String.strip(c) === "" ->
+        parse(cs, stk)
+      c === "\n" ->
+        parse(cs, stk)
+    end
   end
 
   defp str(cs, stk, l) do
