@@ -5,6 +5,42 @@ defmodule Bton do
     [v] = parse(String.codepoints(iolist_to_binary(s)), [])
     v
   end
+  def stringify(d) do
+    iolist_to_binary(emit(d))
+  end
+  defp emit(d) when is_integer d do
+    d = integer_to_binary d
+    if d < 0 do
+      "d#{-d}-"
+    else
+      "d#{d}"
+    end
+  end
+  defp emit(d) when is_float d do
+    a = iolist_to_binary(:io_lib.format("~.3f", [d]))
+    [x, y] = Regex.split ~r"\.", a
+    a = binary_to_integer(String.strip(x <> y))
+    if a < 0 do
+      "d#{-a}-d3e"
+    else
+      "d#{a}d3e"
+    end
+  end
+  defp emit(b) when is_binary(b) do
+    [emit(size(b)), '"', b]
+  end
+  defp emit(xs) when is_list(xs) do
+    xs = Enum.map xs, fn(x) ->
+      "#{emit(x)},"
+    end
+    ["[", xs, "]"]
+  end
+  defp emit(m) when is_map(m) do
+    ps = Enum.map m, fn({k, v}) ->
+      "#{emit(k)}#{emit(v)}:"
+    end
+    ["{", ps, "}"]
+  end
   defp parse([], v) do
     v
   end
@@ -15,8 +51,10 @@ defmodule Bton do
   # defp parse([?x|cs], stk) do
     # hex(cs, stk)
   # end
-  defp parse(["e"|cs], [d|stk]) do
-    {cs, x} = dec(cs, 0)
+  defp parse(["-"|cs], [d|stk]) do
+    parse(cs, [-d|stk])
+  end
+  defp parse(["e"|cs], [x,d|stk]) do
     parse(cs, [d / :math.pow(10, x)|stk])
   end
   defp parse(["{"|cs] , stk) do
@@ -55,7 +93,7 @@ defmodule Bton do
   end
 
   defp dec([c|cs], acc) when c >= "0" and c <= "9" do
-    <<c, b :: binary>> = c
+    <<c, _ :: binary>> = c
     d = c - ?0
     dec(cs, acc * 10 + d)
   end
