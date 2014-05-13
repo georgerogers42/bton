@@ -1,6 +1,7 @@
 defmodule Bton do
   use Application.Behaviour
 
+  @doc "Converts the datastructure *d* to a BTON program"
   def print(d) do
     iolist_to_binary(emit(d))
   end
@@ -33,6 +34,7 @@ defmodule Bton do
     ["{", ps, "}"]
   end
 
+  @doc "Takes a BTON String *s* and returns the datastructure the program returns"
   def read(s) do
     [v] = parse(String.codepoints(iolist_to_binary(s)), [])
     v

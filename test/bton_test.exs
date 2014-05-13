@@ -1,14 +1,13 @@
 defmodule BtonTest do
   use ExUnit.Case
+  import Bton.Test.Helpers
+  # ExUnit.configure trace: true
 
-  def rs(v) do
-    assert Bton.read(Bton.print(v)) === v
-  test "numbers" do
-    assert Bton.parse("12") == 12
-  end
-  test "strings" do
-    assert Bton.parse("5\"hello") == "hello"
-  end
-  test "read show" do
-  end
+  rs(10)
+  rs(-167)
+  rs(10.25)
+  rs(-6.0252)
+  rs("Hello World!")
+  rs(["Hello World", 1.25, 2, [1,2], %{2 => 5}])
+  rs(%{"black" => "sabbath", [1,2] => %{3 => 4}})
 end
