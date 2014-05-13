@@ -1,3 +1,3 @@
 # Bton
 
-** TODO: Add description **
+A Textual Binary Data Representation.
